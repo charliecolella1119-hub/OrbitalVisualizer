@@ -84,17 +84,31 @@ std::vector<Point> generateOrbital(int orbitalMode,
             probability = r * r * angular * angular * std::exp(-r);
             pointColor = angular > 0 ? sf::Color::Cyan : sf::Color::Magenta;        
         }
+            // 3d x^2-y^2
         else if (orbitalMode == 4)
         {
-            double phase = x * x - y * y;
-            probability = phase * phase * std::exp(-1.0 * r);
-            pointColor = phase > 0 ? sf::Color::Cyan : sf::Color::Magenta;
+            double angular =
+            std::sin(theta) * std::sin(theta) * std::cos(2.0 * phi);
+
+            probability =
+            r * r * r * r *
+            angular * angular *
+            std::exp(-r);
+
+            pointColor = angular > 0 ? sf::Color::Cyan : sf::Color::Magenta;
         }
+            // 3d_xy
         else if (orbitalMode == 5)
         {
-            double phase = x * y;
-            probability = phase * phase * std::exp(-1.0 * r);
-            pointColor = phase > 0 ? sf::Color::Cyan : sf::Color::Magenta;
+            double angular =
+                std::sin(theta) * std::sin(theta) * std::sin(2.0 * phi);
+
+            probability =
+            r * r * r * r *
+            angular * angular *
+            std::exp(-r);
+
+            pointColor = angular > 0 ? sf::Color::Cyan : sf::Color::Magenta;
         }
         else if (orbitalMode == 6)
         {
@@ -102,11 +116,18 @@ std::vector<Point> generateOrbital(int orbitalMode,
             probability = radial * radial * std::exp(-r);
             pointColor = sf::Color::Cyan;
         }
+            // 3d_z^2
         else if (orbitalMode == 7)
         {
-            double phase = 2.0 * z * z - x * x - y * y;
-            probability = phase * phase * std::exp(-1.0 * r);
-            pointColor = phase > 0 ? sf::Color::Cyan : sf::Color::Magenta;
+            double angular =
+            3.0 * std::cos(theta) * std::cos(theta) - 1.0;
+
+            probability =
+                r * r * r * r *
+                angular * angular *
+                std::exp(-r);
+
+            pointColor = angular > 0 ? sf::Color::Cyan : sf::Color::Magenta;
         }
         else if (orbitalMode == 8)
         {
