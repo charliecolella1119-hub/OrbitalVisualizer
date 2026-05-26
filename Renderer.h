@@ -11,7 +11,8 @@ void drawPoints(sf::RenderWindow& window,
                 float offsetX,
                 float offsetY,
                 float rotationX,
-                float rotationY);
+                float rotationY,
+                float cameraDistance);
 
 void drawNuclei(sf::RenderWindow& window,
                 float zoom,
@@ -27,6 +28,7 @@ void drawUI(sf::RenderWindow& window,
             int pointCount,
             float zoom,
             double bondLength,
-            bool autoRotate);
+            bool autoRotate,
+            float cameraDistance);
 
 #endif

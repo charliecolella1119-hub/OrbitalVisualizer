@@ -31,11 +31,37 @@ std::vector<Point> generateOrbital(int orbitalMode,
 
     while (points.size() < static_cast<std::size_t>(targetPoints))
     {
-        double x = randomDouble(-4.0, 4.0);
-        double y = randomDouble(-4.0, 4.0);
-        double z = randomDouble(-4.0, 4.0);
+        double maxRadius = 6.0;
 
-        double r = std::sqrt(x * x + y * y + z * z);
+        if (orbitalMode == 1)
+        {
+            maxRadius = 4.0;
+        }
+        else if (orbitalMode == 6)
+        {
+            maxRadius = 7.0;
+        }
+        else if (orbitalMode == 2 ||
+             orbitalMode == 3 ||
+             orbitalMode == 8)
+        {
+            maxRadius = 7.0;
+        }
+        else
+        {
+            maxRadius = 8.0;
+        }
+
+    double r = randomDouble(0.0, maxRadius);
+
+    double theta = std::acos(randomDouble(-1.0, 1.0));
+    
+    double phi = randomDouble(0.0, 2.0 * M_PI);
+    
+
+        double x = r * std::sin(theta) * std::cos(phi);
+        double y = r * std::sin(theta) * std::sin(phi);
+        double z = r * std::cos(theta);
 
         double probability = 0.0;
         sf::Color pointColor = sf::Color::Cyan;
@@ -46,13 +72,17 @@ std::vector<Point> generateOrbital(int orbitalMode,
         }
         else if (orbitalMode == 2)
         {
-            probability = y * y * std::exp(-1.5 * r);
-            pointColor = y > 0 ? sf::Color::Cyan : sf::Color::Magenta;
+            // 2p_y
+            double angular = std::sin(theta) * std::sin(phi);
+            probability = r * r * angular * angular * std::exp(-r);
+            pointColor = angular > 0 ? sf::Color::Cyan : sf::Color::Magenta;
         }
         else if (orbitalMode == 3)
         {
-            probability = x * x * std::exp(-1.5 * r);
-            pointColor = x > 0 ? sf::Color::Cyan : sf::Color::Magenta;
+            // 2p_x
+            double angular = std::sin(theta) * std::cos(phi);
+            probability = r * r * angular * angular * std::exp(-r);
+            pointColor = angular > 0 ? sf::Color::Cyan : sf::Color::Magenta;        
         }
         else if (orbitalMode == 4)
         {
@@ -68,8 +98,9 @@ std::vector<Point> generateOrbital(int orbitalMode,
         }
         else if (orbitalMode == 6)
         {
-            double node = 2.0 - r;
-            probability = node * node * std::exp(-1.0 * r);
+            double radial = 2.0 - r;
+            probability = radial * radial * std::exp(-r);
+            pointColor = sf::Color::Cyan;
         }
         else if (orbitalMode == 7)
         {
@@ -79,8 +110,10 @@ std::vector<Point> generateOrbital(int orbitalMode,
         }
         else if (orbitalMode == 8)
         {
-            probability = z * z * std::exp(-1.5 * r);
-            pointColor = z > 0 ? sf::Color::Cyan : sf::Color::Magenta;
+            // 2p_z
+            double angular = std::cos(theta);
+            probability = r * r * angular * angular * std::exp(-r);
+            pointColor = angular > 0 ? sf::Color::Cyan : sf::Color::Magenta;
         }
         else if (orbitalMode == 9 || orbitalMode == 0)
         {

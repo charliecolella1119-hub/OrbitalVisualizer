@@ -19,7 +19,8 @@ void drawPoints(sf::RenderWindow& window,
                 float offsetX,
                 float offsetY,
                 float rotationX,
-                float rotationY)
+                float rotationY,
+                float cameraDistance)
 {
     std::vector<ProjectedPoint> projectedPoints;
 
@@ -41,10 +42,19 @@ void drawPoints(sf::RenderWindow& window,
         float rotatedY = y * cosX - rotatedZ * sinX;
         rotatedZ = y * sinX + rotatedZ * cosX;
 
-        float perspective = 1.0f / (1.0f + rotatedZ * 0.08f);
+        if (cameraDistance - rotatedZ < 0.1f)
+            {
+                continue;
+            }
 
-        float screenX = rotatedX * zoom * perspective + offsetX;
-        float screenY = rotatedY * zoom * perspective + offsetY;
+        float perspective =
+            cameraDistance / (cameraDistance - rotatedZ);
+
+        float screenX =
+            rotatedX * zoom * perspective + offsetX;
+
+        float screenY =
+            rotatedY * zoom * perspective + offsetY;
 
         float brightness = 1.0f - (rotatedZ + 4.0f) / 8.0f;
 
@@ -162,7 +172,8 @@ void drawUI(sf::RenderWindow& window,
             int pointCount,
             float zoom,
             double bondLength,
-            bool autoRotate)
+            bool autoRotate,
+            float cameraDistance)
 {
     double overlap = std::exp(-bondLength);
 
@@ -180,12 +191,12 @@ void drawUI(sf::RenderWindow& window,
     sf::Text title(font, getOrbitalName(orbitalMode), 24);
     title.setFillColor(sf::Color::White);
     title.setPosition({20.0f, 15.0f});
-
     window.draw(title);
 
     std::string infoString =
         "Points: " + std::to_string(pointCount) +
         " | Zoom: " + std::to_string(static_cast<int>(zoom)) +
+        " | Camera: " + std::to_string(static_cast<int>(cameraDistance)) +
         " | Bond Length: " + std::to_string(bondLength) +
         " | Overlap: " + std::to_string(overlap) +
         " | Energy Effect: " + std::to_string(energyEffect) +
@@ -194,17 +205,15 @@ void drawUI(sf::RenderWindow& window,
     sf::Text info(font, infoString, 18);
     info.setFillColor(sf::Color::White);
     info.setPosition({20.0f, 55.0f});
-
     window.draw(info);
 
-    sf::Text controls(
-        font,
-        "1-8: Atomic Orbitals | 9: H2 Bonding | 0: H2 Antibonding | WASD: Pan | Arrows/QE: Rotate | Mouse Wheel: Zoom | R: Auto | [ ]: Bond Length | ESC: Quit",
-        15
-    );
+    std::string controlsString =
+        "1-8: Atomic Orbitals | 9: H2 Bonding | 0: H2 Antibonding | "
+        "WASD: Pan | Arrows/QE: Rotate | Mouse Wheel: Zoom | "
+        "R: Auto | [ ]: Bond Length | , .: Camera | ESC: Quit";
 
+    sf::Text controls(font, controlsString, 15);
     controls.setFillColor(sf::Color::White);
     controls.setPosition({20.0f, 90.0f});
-
     window.draw(controls);
 }
