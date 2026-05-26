@@ -199,7 +199,7 @@ void drawUI(sf::RenderWindow& window,
 
     sf::Text controls(
         font,
-        "1-8: Atomic Orbitals | 9: H2 Bonding | 0: H2 Antibonding | WASD: Pan | Arrows/QE: Rotate | Mouse Wheel: Zoom | R: Auto | [ ]: Bond Length",
+        "1-8: Atomic Orbitals | 9: H2 Bonding | 0: H2 Antibonding | WASD: Pan | Arrows/QE: Rotate | Mouse Wheel: Zoom | R: Auto | [ ]: Bond Length | ESC: Quit",
         15
     );
 
