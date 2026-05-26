@@ -17,7 +17,9 @@ double randomDouble(double min, double max);
 
 std::string getOrbitalName(int orbitalMode);
 
-std::vector<Point> generateOrbital(int orbitalMode, int targetPoints);
+std::vector<Point> generateOrbital(int orbitalMode,
+                                   int targetPoints,
+                                   double bondLength);
 
 #endif
 

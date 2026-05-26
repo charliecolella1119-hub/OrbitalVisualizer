@@ -11,12 +11,18 @@ int main()
 
     int orbitalMode = 1;
     int pointCount = 8000;
+
     float zoom = 90.0f;
-    float rotationX = 0.0f;
-    float rotationY = 0.0f;
     float offsetX = 700.0f;
     float offsetY = 500.0f;
+
+    float rotationX = 0.0f;
+    float rotationY = 0.0f;
+
     bool autoRotate = false;
+    bool regenerateOrbitals = false;
+
+    double bondLength = 1.6;
 
     sf::RenderWindow window(sf::VideoMode({1400, 1000}), "Orbital Visualizer");
     window.setFramerateLimit(60);
@@ -28,7 +34,8 @@ int main()
         return 1;
     }
 
-    std::vector<Point> points = generateOrbital(orbitalMode, pointCount);
+    std::vector<Point> points =
+        generateOrbital(orbitalMode, pointCount, bondLength);
 
     while (window.isOpen())
     {
@@ -41,46 +48,60 @@ int main()
 
             if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>())
             {
-                if (keyPressed->code == sf::Keyboard::Key::Num1)
+                if (keyPressed->code == sf::Keyboard::Key::Escape)
+                {
+                    window.close();
+                }
+                else if (keyPressed->code == sf::Keyboard::Key::Num1)
                 {
                     orbitalMode = 1;
-                    points = generateOrbital(orbitalMode, pointCount);
+                    points = generateOrbital(orbitalMode, pointCount, bondLength);
                 }
                 else if (keyPressed->code == sf::Keyboard::Key::Num2)
                 {
                     orbitalMode = 2;
-                    points = generateOrbital(orbitalMode, pointCount);
+                    points = generateOrbital(orbitalMode, pointCount, bondLength);
                 }
                 else if (keyPressed->code == sf::Keyboard::Key::Num3)
                 {
                     orbitalMode = 3;
-                    points = generateOrbital(orbitalMode, pointCount);
+                    points = generateOrbital(orbitalMode, pointCount, bondLength);
                 }
                 else if (keyPressed->code == sf::Keyboard::Key::Num4)
                 {
                     orbitalMode = 4;
-                    points = generateOrbital(orbitalMode, pointCount);
+                    points = generateOrbital(orbitalMode, pointCount, bondLength);
                 }
                 else if (keyPressed->code == sf::Keyboard::Key::Num5)
                 {
                     orbitalMode = 5;
-                    points = generateOrbital(orbitalMode, pointCount);
+                    points = generateOrbital(orbitalMode, pointCount, bondLength);
                 }
                 else if (keyPressed->code == sf::Keyboard::Key::Num6)
                 {
                     orbitalMode = 6;
-                    points = generateOrbital(orbitalMode, pointCount);
-                }  
+                    points = generateOrbital(orbitalMode, pointCount, bondLength);
+                }
                 else if (keyPressed->code == sf::Keyboard::Key::Num7)
                 {
                     orbitalMode = 7;
-                    points = generateOrbital(orbitalMode, pointCount);
+                    points = generateOrbital(orbitalMode, pointCount, bondLength);
                 }
                 else if (keyPressed->code == sf::Keyboard::Key::Num8)
                 {
                     orbitalMode = 8;
-                    points = generateOrbital(orbitalMode, pointCount);
-                }     
+                    points = generateOrbital(orbitalMode, pointCount, bondLength);
+                }
+                else if (keyPressed->code == sf::Keyboard::Key::Num9)
+                {
+                    orbitalMode = 9;
+                    points = generateOrbital(orbitalMode, pointCount, bondLength);
+                }
+                else if (keyPressed->code == sf::Keyboard::Key::Num0)
+                {
+                    orbitalMode = 0;
+                    points = generateOrbital(orbitalMode, pointCount, bondLength);
+                }
                 else if (keyPressed->code == sf::Keyboard::Key::Up)
                 {
                     zoom += 10.0f;
@@ -97,7 +118,7 @@ int main()
                 else if (keyPressed->code == sf::Keyboard::Key::Equal)
                 {
                     pointCount += 1000;
-                    points = generateOrbital(orbitalMode, pointCount);
+                    regenerateOrbitals = true;
                 }
                 else if (keyPressed->code == sf::Keyboard::Key::Hyphen)
                 {
@@ -108,7 +129,7 @@ int main()
                         pointCount = 1000;
                     }
 
-                    points = generateOrbital(orbitalMode, pointCount);
+                    regenerateOrbitals = true;
                 }
                 else if (keyPressed->code == sf::Keyboard::Key::A)
                 {
@@ -130,41 +151,60 @@ int main()
                 {
                     rotationY -= 0.1f;
                 }
-                    else if (keyPressed->code == sf::Keyboard::Key::Right)
+                else if (keyPressed->code == sf::Keyboard::Key::Right)
                 {
                     rotationY += 0.1f;
                 }
-                    else if (keyPressed->code == sf::Keyboard::Key::Q)
+                else if (keyPressed->code == sf::Keyboard::Key::Q)
                 {
                     rotationX -= 0.1f;
                 }
-                    else if (keyPressed->code == sf::Keyboard::Key::E)
+                else if (keyPressed->code == sf::Keyboard::Key::E)
                 {
                     rotationX += 0.1f;
                 }
-                    else if (keyPressed->code == sf::Keyboard::Key::Escape)
-                {
-                    return 0;
-                }
-                else if (keyPressed->code == sf::Keyboard::Key::T)
+                else if (keyPressed->code == sf::Keyboard::Key::R)
                 {
                     autoRotate = !autoRotate;
                 }
-                if (const auto* mouseWheel =
-                event->getIf<sf::Event::MouseWheelScrolled>())
+                else if (keyPressed->code == sf::Keyboard::Key::LBracket)
                 {
-                    if (mouseWheel->delta > 0)
-                    {
-                        zoom += 10.0f;
-                    }
-                    else if (mouseWheel->delta < 0)
-                    {
-                        zoom -= 10.0f;
+                    bondLength -= 0.1;
 
-                        if (zoom < 20.0f)
-                        {
-                            zoom = 20.0f;
-                        }
+                    if (bondLength < 0.5)
+                    {
+                        bondLength = 0.5;
+                    }
+
+                    regenerateOrbitals = true;
+                }
+                else if (keyPressed->code == sf::Keyboard::Key::RBracket)
+                {
+                    bondLength += 0.1;
+
+                    if (bondLength > 4.0)
+                    {
+                        bondLength = 4.0;
+                    }
+
+                    regenerateOrbitals = true;
+                }
+            }
+
+            if (const auto* mouseWheel =
+                event->getIf<sf::Event::MouseWheelScrolled>())
+            {
+                if (mouseWheel->delta > 0)
+                {
+                    zoom += 10.0f;
+                }
+                else if (mouseWheel->delta < 0)
+                {
+                    zoom -= 10.0f;
+
+                    if (zoom < 20.0f)
+                    {
+                        zoom = 20.0f;
                     }
                 }
             }
@@ -174,12 +214,44 @@ int main()
         {
             rotationY += 0.01f;
         }
-  
+
+        if (regenerateOrbitals)
+        {
+            points = generateOrbital(orbitalMode,
+                                     pointCount,
+                                     bondLength);
+
+            regenerateOrbitals = false;
+        }
 
         window.clear(sf::Color::Black);
 
-        drawPoints(window, points, zoom, offsetX, offsetY, rotationX, rotationY);
-        drawUI(window, font, orbitalMode, pointCount, zoom);
+        drawPoints(window,
+                   points,
+                   zoom,
+                   offsetX,
+                   offsetY,
+                   rotationX,
+                   rotationY);
+
+        if (orbitalMode == 9 || orbitalMode == 0)
+        {
+            drawNuclei(window,
+                       zoom,
+                       offsetX,
+                       offsetY,
+                       rotationX,
+                       rotationY,
+                       bondLength);
+        }
+
+        drawUI(window,
+               font,
+               orbitalMode,
+               pointCount,
+               zoom,
+               bondLength,
+               autoRotate);
 
         window.display();
     }

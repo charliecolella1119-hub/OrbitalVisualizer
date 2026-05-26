@@ -1,8 +1,8 @@
 #include "Renderer.h"
-#include <string>
-#include <cmath>
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
+#include <string>
 
 struct ProjectedPoint
 {
@@ -80,16 +80,79 @@ void drawPoints(sf::RenderWindow& window,
               projectedPoints.end(),
               [](const ProjectedPoint& a, const ProjectedPoint& b)
               {
-                  return a.depth < b.depth;
+                  return a.depth > b.depth;
               });
 
-    for (const ProjectedPoint& p : projectedPoints)
+    for (const ProjectedPoint& projected : projectedPoints)
     {
-        sf::CircleShape dot(p.size);
-        dot.setPosition({p.screenX, p.screenY});
-        dot.setFillColor(p.color);
+        sf::CircleShape dot(projected.size);
+        dot.setPosition({projected.screenX, projected.screenY});
+        dot.setFillColor(projected.color);
 
         window.draw(dot);
+    }
+}
+
+void drawNuclei(sf::RenderWindow& window,
+                float zoom,
+                float offsetX,
+                float offsetY,
+                float rotationX,
+                float rotationY,
+                double bondLength)
+{
+    std::vector<sf::Vector3f> nuclei =
+    {
+        {static_cast<float>(-bondLength / 2.0), 0.0f, 0.0f},
+        {static_cast<float>( bondLength / 2.0), 0.0f, 0.0f}
+    };
+
+    for (const sf::Vector3f& n : nuclei)
+    {
+        float x = n.x;
+        float y = n.y;
+        float z = n.z;
+
+        float cosY = std::cos(rotationY);
+        float sinY = std::sin(rotationY);
+
+        float rotatedX = x * cosY + z * sinY;
+        float rotatedZ = -x * sinY + z * cosY;
+
+        float cosX = std::cos(rotationX);
+        float sinX = std::sin(rotationX);
+
+        float rotatedY = y * cosX - rotatedZ * sinX;
+        rotatedZ = y * sinX + rotatedZ * cosX;
+
+        float perspective = 1.0f / (1.0f + rotatedZ * 0.08f);
+
+        float screenX = rotatedX * zoom * perspective + offsetX;
+        float screenY = rotatedY * zoom * perspective + offsetY;
+
+        float radius = 8.0f * perspective;
+
+        sf::CircleShape nucleus(radius);
+        nucleus.setOrigin({radius, radius});
+        nucleus.setPosition({screenX, screenY});
+        nucleus.setFillColor(sf::Color(180, 180, 180));
+        nucleus.setOutlineColor(sf::Color(120, 120, 120));
+        nucleus.setOutlineThickness(1.0f);
+
+        window.draw(nucleus);
+
+        float highlightRadius = radius * 0.35f;
+
+        sf::CircleShape highlight(highlightRadius);
+        highlight.setOrigin({highlightRadius, highlightRadius});
+        highlight.setPosition(
+        {
+            screenX - radius * 0.35f,
+            screenY - radius * 0.35f
+        });
+        highlight.setFillColor(sf::Color(230, 230, 230, 180));
+
+        window.draw(highlight);
     }
 }
 
@@ -97,28 +160,51 @@ void drawUI(sf::RenderWindow& window,
             const sf::Font& font,
             int orbitalMode,
             int pointCount,
-            float zoom)
+            float zoom,
+            double bondLength,
+            bool autoRotate)
 {
-    sf::Text label(font, getOrbitalName(orbitalMode), 24);
-    label.setFillColor(sf::Color::White);
-    label.setPosition({20.0f, 20.0f});
-    window.draw(label);
+    double overlap = std::exp(-bondLength);
 
-    std::string controlsText =
-        "1-8: Orbitals | Up/Down: Zoom | +/-: Density | WASD: Pan | Q/E: Rotate | T: Auto-Rotate";
+    double energyEffect = 0.0;
 
-    sf::Text controls(font, controlsText, 18);
-    controls.setFillColor(sf::Color::White);
-    controls.setPosition({20.0f, 55.0f});
-    window.draw(controls);
+    if (orbitalMode == 9)
+    {
+        energyEffect = -overlap;
+    }
+    else if (orbitalMode == 0)
+    {
+        energyEffect = overlap;
+    }
 
-    std::string info =
+    sf::Text title(font, getOrbitalName(orbitalMode), 24);
+    title.setFillColor(sf::Color::White);
+    title.setPosition({20.0f, 15.0f});
+
+    window.draw(title);
+
+    std::string infoString =
         "Points: " + std::to_string(pointCount) +
-        " | Zoom: " + std::to_string(static_cast<int>(zoom));
+        " | Zoom: " + std::to_string(static_cast<int>(zoom)) +
+        " | Bond Length: " + std::to_string(bondLength) +
+        " | Overlap: " + std::to_string(overlap) +
+        " | Energy Effect: " + std::to_string(energyEffect) +
+        " | Auto Rotate: " + std::string(autoRotate ? "ON" : "OFF");
 
-    sf::Text infoText(font, info, 18);
-    infoText.setFillColor(sf::Color::White);
-    infoText.setPosition({20.0f, 85.0f});
-    window.draw(infoText);
+    sf::Text info(font, infoString, 18);
+    info.setFillColor(sf::Color::White);
+    info.setPosition({20.0f, 55.0f});
+
+    window.draw(info);
+
+    sf::Text controls(
+        font,
+        "1-8: Atomic Orbitals | 9: H2 Bonding | 0: H2 Antibonding | WASD: Pan | Arrows/QE: Rotate | Mouse Wheel: Zoom | R: Auto | [ ]: Bond Length",
+        15
+    );
+
+    controls.setFillColor(sf::Color::White);
+    controls.setPosition({20.0f, 90.0f});
+
+    window.draw(controls);
 }
-
