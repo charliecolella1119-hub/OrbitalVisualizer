@@ -104,6 +104,7 @@ void drawPoints(sf::RenderWindow& window,
 }
 
 void drawNuclei(sf::RenderWindow& window,
+                const sf::Font& font,
                 float zoom,
                 float offsetX,
                 float offsetY,
@@ -116,6 +117,49 @@ void drawNuclei(sf::RenderWindow& window,
         {static_cast<float>(-bondLength / 2.0), 0.0f, 0.0f},
         {static_cast<float>( bondLength / 2.0), 0.0f, 0.0f}
     };
+
+    float xA = static_cast<float>(-bondLength / 2.0);
+    float xB = static_cast<float>( bondLength / 2.0);
+
+    float cosY = std::cos(rotationY);
+    float sinY = std::sin(rotationY);
+
+    float rotatedXA = xA * cosY;
+    float rotatedZA = -xA * sinY;
+
+    float rotatedXB = xB * cosY;
+    float rotatedZB = -xB * sinY;
+
+    float cosX = std::cos(rotationX);
+    float sinX = std::sin(rotationX);
+
+    float rotatedYA = -rotatedZA * sinX;
+    rotatedZA = rotatedZA * cosX;
+
+    float rotatedYB = -rotatedZB * sinX;
+    rotatedZB = rotatedZB * cosX;
+
+    float cameraDistance = 16.0f;
+
+    float perspectiveA = cameraDistance / (cameraDistance - rotatedZA);
+    float perspectiveB = cameraDistance / (cameraDistance - rotatedZB);
+
+    sf::VertexArray bondAxis(sf::PrimitiveType::Lines, 2);
+
+    bondAxis[0].position = {
+        rotatedXA * zoom * perspectiveA + offsetX,
+        rotatedYA * zoom * perspectiveA + offsetY
+    };
+
+    bondAxis[1].position = {
+        rotatedXB * zoom * perspectiveB + offsetX,
+        rotatedYB * zoom * perspectiveB + offsetY
+    };
+
+    bondAxis[0].color = sf::Color(180, 180, 180, 120);
+    bondAxis[1].color = sf::Color(180, 180, 180, 120);
+
+    window.draw(bondAxis);
 
     for (const sf::Vector3f& n : nuclei)
     {
@@ -161,6 +205,12 @@ void drawNuclei(sf::RenderWindow& window,
             screenY - radius * 0.35f
         });
         highlight.setFillColor(sf::Color(230, 230, 230, 180));
+
+        sf::Text label(font, "H", 14);
+        label.setFillColor(sf::Color::White);
+        label.setPosition({screenX - 5.0f, screenY - 28.0f});
+
+        window.draw(label);
 
         window.draw(highlight);
     }
@@ -216,4 +266,14 @@ void drawUI(sf::RenderWindow& window,
     controls.setFillColor(sf::Color::White);
     controls.setPosition({20.0f, 90.0f});
     window.draw(controls);
+
+    sf::Text legend(
+    font,
+    "Legend: Cyan = positive phase | Magenta = negative phase | White/gray spheres = nuclei | Gray line = bond axis",
+    15
+    );
+
+    legend.setFillColor(sf::Color::White);
+    legend.setPosition({20.0f, 120.0f});
+    window.draw(legend);    
 }

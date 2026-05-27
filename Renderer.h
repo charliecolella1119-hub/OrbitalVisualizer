@@ -15,6 +15,7 @@ void drawPoints(sf::RenderWindow& window,
                 float cameraDistance);
 
 void drawNuclei(sf::RenderWindow& window,
+                const sf::Font& font,
                 float zoom,
                 float offsetX,
                 float offsetY,

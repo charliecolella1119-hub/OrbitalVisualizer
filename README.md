@@ -14,6 +14,10 @@ This project renders quantum-inspired atomic orbitals as interactive 3D point cl
 - Auto-rotation mode
 - Adjustable point density
 - Zoom and pan controls
+- Real spherical harmonic angular forms for d orbitals
+- Spherical-coordinate orbital sampling
+- Adjustable perspective camera distance
+- H2 bonding and antibonding molecular orbitals
 - Multiple orbital visualizations:
   - 1s
   - 2s

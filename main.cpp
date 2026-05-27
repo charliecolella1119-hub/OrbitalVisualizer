@@ -283,15 +283,15 @@ int main()
         // Draw nuclei for molecular orbitals
         if (orbitalMode == 9 || orbitalMode == 0)
         {
-            drawNuclei(
-                window,
-                zoom,
-                offsetX,
-                offsetY,
-                rotationX,
-                rotationY,
-                bondLength
-            );
+            drawNuclei(window,
+            font,
+            zoom,
+            offsetX,
+            offsetY,
+            rotationX,
+            rotationY,
+            bondLength);
+            
         }
 
         // Draw UI
