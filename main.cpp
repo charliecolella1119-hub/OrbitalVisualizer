@@ -252,6 +252,16 @@ int main()
                     }
                 }
 
+                else if (keyPressed->code == sf::Keyboard::Key::R)
+                {
+                    zoom = getDefaultZoom(orbitalMode);
+                    offsetX = 700.0f;
+                    offsetY = 500.0f;
+                    rotationX = 0.0f;
+                    rotationY = 0.0f;
+                    cameraDistance = 16.0f;
+                }
+
                 // Regenerate orbitals
                 points = generateOrbital(
                     orbitalMode,

@@ -34,13 +34,17 @@ This project renders quantum-inspired atomic orbitals as interactive 3D point cl
 
 | Key | Action |
 |-----|--------|
-| 1-8 | Switch orbitals |
-| Up / Down | Zoom in/out |
+| 1-8 | Select atomic orbitals |
+| 9 | H2 bonding orbital |
+| 0 | H2 antibonding orbital |
+| WASD | Pan view |
+| Arrow Keys / Q / E | Rotate view |
+| Mouse Wheel | Zoom |
 | + / - | Increase/decrease point density |
-| WASD | Pan camera |
-| Q / E | Rotate vertically |
-| Left / Right | Rotate horizontally |
-| R | Toggle auto-rotation |
+| [ / ] | Adjust H2 bond length |
+| R | Reset view |
+| T | Toggle auto-rotate |
+| Esc | Quit |
 
 ---
 

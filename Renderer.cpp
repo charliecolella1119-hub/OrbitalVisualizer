@@ -260,7 +260,7 @@ void drawUI(sf::RenderWindow& window,
     std::string controlsString =
         "1-8: Atomic Orbitals | 9: H2 Bonding | 0: H2 Antibonding | "
         "WASD: Pan | Arrows/QE: Rotate | Mouse Wheel: Zoom | "
-        "R: Auto | [ ]: Bond Length | , .: Camera | ESC: Quit";
+        "T: Auto | [ ]: Bond Length | , .: Camera | ESC: Quit | R: Reset View";
 
     sf::Text controls(font, controlsString, 15);
     controls.setFillColor(sf::Color::White);
