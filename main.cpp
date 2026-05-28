@@ -48,6 +48,11 @@ int main()
 
     bool autoRotate = false;
 
+    int renderMode = 0;
+    // 0 = point cloud
+    // 1 = gaussian glow
+    // 2 = volumetric density
+
     double bondLength = 1.6;
 
     sf::RenderWindow window(
@@ -262,6 +267,16 @@ int main()
                     cameraDistance = 16.0f;
                 }
 
+                else if (keyPressed->code == sf::Keyboard::Key::G)
+                {
+                    renderMode++;
+
+                    if (renderMode > 2)
+                    {
+                        renderMode = 0;
+                    }
+                }
+
                 // Regenerate orbitals
                 points = generateOrbital(
                     orbitalMode,
@@ -288,12 +303,13 @@ int main()
            offsetY,
            rotationX,
            rotationY,
-           cameraDistance);
+           cameraDistance,
+           renderMode);
 
         // Draw nuclei for molecular orbitals
         if (orbitalMode == 9 || orbitalMode == 0)
         {
-            drawNuclei(window,
+        drawNuclei(window,
             font,
             zoom,
             offsetX,
@@ -306,13 +322,13 @@ int main()
 
         // Draw UI
         drawUI(window,
-        font,
-        orbitalMode,
-        pointCount,
-        zoom,
-        bondLength,
-        autoRotate,
-        cameraDistance);
+            font,
+            orbitalMode,
+            pointCount,
+            zoom,
+            bondLength,
+            autoRotate,
+            cameraDistance);
 
         // Display frame
         window.display();

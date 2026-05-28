@@ -12,7 +12,8 @@ void drawPoints(sf::RenderWindow& window,
                 float offsetY,
                 float rotationX,
                 float rotationY,
-                float cameraDistance);
+                float cameraDistance,
+                int renderMode);
 
 void drawNuclei(sf::RenderWindow& window,
                 const sf::Font& font,

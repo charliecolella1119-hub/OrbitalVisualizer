@@ -3,6 +3,7 @@
 #include <cmath>
 #include <cstdint>
 #include <string>
+#include <iostream>
 
 struct ProjectedPoint
 {
@@ -13,6 +14,57 @@ struct ProjectedPoint
     sf::Color color;
 };
 
+sf::Texture createGaussianTexture()
+{
+    const int size = 64;
+
+    sf::Image image(
+    {
+        static_cast<unsigned int>(size),
+        static_cast<unsigned int>(size)
+    },
+    sf::Color::Transparent);
+
+    float center = size / 2.0f;
+
+    for (int y = 0; y < size; y++)
+    {
+        for (int x = 0; x < size; x++)
+        {
+            float dx = x - center;
+            float dy = y - center;
+
+            float dist2 = dx * dx + dy * dy;
+
+            float sigma = 12.0f;
+
+            float intensity =
+                std::exp(-dist2 / (2.0f * sigma * sigma));
+
+            std::uint8_t alpha =
+                static_cast<std::uint8_t>(255.0f * intensity);
+
+            image.setPixel(
+            {
+                static_cast<unsigned int>(x),
+                static_cast<unsigned int>(y)
+            },
+            sf::Color(255, 255, 255, alpha));
+        }
+    }
+
+    sf::Texture texture;
+
+    if (!texture.loadFromImage(image))
+    {
+        std::cout << "Failed to load gaussian texture.\n";
+    }
+
+    texture.setSmooth(true);
+
+    return texture;
+}
+
 void drawPoints(sf::RenderWindow& window,
                 const std::vector<Point>& points,
                 float zoom,
@@ -20,8 +72,12 @@ void drawPoints(sf::RenderWindow& window,
                 float offsetY,
                 float rotationX,
                 float rotationY,
-                float cameraDistance)
+                float cameraDistance,
+                int renderMode)
 {
+    bool glowMode = (renderMode == 1);
+    bool volumetricMode = (renderMode == 2);
+
     std::vector<ProjectedPoint> projectedPoints;
 
     for (const Point& p : points)
@@ -30,23 +86,27 @@ void drawPoints(sf::RenderWindow& window,
         float y = p.y;
         float z = p.z;
 
+        // Y rotation
         float cosY = std::cos(rotationY);
         float sinY = std::sin(rotationY);
 
         float rotatedX = x * cosY + z * sinY;
         float rotatedZ = -x * sinY + z * cosY;
 
+        // X rotation
         float cosX = std::cos(rotationX);
         float sinX = std::sin(rotationX);
 
         float rotatedY = y * cosX - rotatedZ * sinX;
         rotatedZ = y * sinX + rotatedZ * cosX;
 
+        // Prevent divide-by-zero / clipping
         if (cameraDistance - rotatedZ < 0.1f)
-            {
-                continue;
-            }
+        {
+            continue;
+        }
 
+        // Perspective projection
         float perspective =
             cameraDistance / (cameraDistance - rotatedZ);
 
@@ -56,7 +116,9 @@ void drawPoints(sf::RenderWindow& window,
         float screenY =
             rotatedY * zoom * perspective + offsetY;
 
-        float brightness = 1.0f - (rotatedZ + 4.0f) / 8.0f;
+        // Depth brightness
+        float brightness =
+            1.0f - (rotatedZ + 4.0f) / 8.0f;
 
         if (brightness < 0.25f)
         {
@@ -68,13 +130,12 @@ void drawPoints(sf::RenderWindow& window,
             brightness = 1.0f;
         }
 
-        sf::Color color =
-        {
+        sf::Color color(
             static_cast<std::uint8_t>(p.color.r * brightness),
             static_cast<std::uint8_t>(p.color.g * brightness),
             static_cast<std::uint8_t>(p.color.b * brightness),
             255
-        };
+        );
 
         projectedPoints.push_back(
         {
@@ -86,20 +147,104 @@ void drawPoints(sf::RenderWindow& window,
         });
     }
 
+    // Sort back-to-front
     std::sort(projectedPoints.begin(),
               projectedPoints.end(),
-              [](const ProjectedPoint& a, const ProjectedPoint& b)
+              [](const ProjectedPoint& a,
+                 const ProjectedPoint& b)
               {
                   return a.depth > b.depth;
               });
 
-    for (const ProjectedPoint& projected : projectedPoints)
-    {
-        sf::CircleShape dot(projected.size);
-        dot.setPosition({projected.screenX, projected.screenY});
-        dot.setFillColor(projected.color);
+    // =========================
+    // GLOW / VOLUMETRIC MODES
+    // =========================
 
-        window.draw(dot);
+    if (glowMode || volumetricMode)
+    {
+        sf::Texture gaussianTexture =
+            createGaussianTexture();
+
+        sf::RenderTexture densityTexture({1400, 1000});
+
+        densityTexture.clear(sf::Color::Transparent);
+
+        for (const ProjectedPoint& projected : projectedPoints)
+        {
+            sf::Sprite glow(gaussianTexture);
+
+            float scale;
+
+            if (glowMode)
+            {
+                scale = projected.size * 0.18f;
+            }
+            else
+            {
+                scale = projected.size * 0.28f;
+            }
+
+            glow.setOrigin({
+                gaussianTexture.getSize().x / 2.0f,
+                gaussianTexture.getSize().y / 2.0f
+            });
+
+            glow.setPosition({
+                projected.screenX,
+                projected.screenY
+            });
+
+            glow.setScale({scale, scale});
+
+            sf::Color glowColor = projected.color;
+
+            if (glowMode)
+            {
+                glowColor.a = 55;
+            }
+            else
+            {
+                glowColor.a = 28;
+            }
+
+            glow.setColor(glowColor);
+
+            densityTexture.draw(glow, sf::BlendAdd);
+        }
+
+        densityTexture.display();
+
+        sf::Sprite densitySprite(densityTexture.getTexture());
+
+        if (volumetricMode)
+        {
+            densitySprite.setColor(
+                sf::Color(220, 220, 220, 235)
+            );
+        }
+
+        window.draw(densitySprite, sf::BlendAdd);
+    }
+
+    // =========================
+    // NORMAL POINT MODE
+    // =========================
+
+    else
+    {
+        for (const ProjectedPoint& projected : projectedPoints)
+        {
+            sf::CircleShape dot(projected.size);
+
+            dot.setPosition({
+                projected.screenX,
+                projected.screenY
+            });
+
+            dot.setFillColor(projected.color);
+
+            window.draw(dot);
+        }
     }
 }
 
@@ -260,7 +405,7 @@ void drawUI(sf::RenderWindow& window,
     std::string controlsString =
         "1-8: Atomic Orbitals | 9: H2 Bonding | 0: H2 Antibonding | "
         "WASD: Pan | Arrows/QE: Rotate | Mouse Wheel: Zoom | "
-        "T: Auto | [ ]: Bond Length | , .: Camera | ESC: Quit | R: Reset View";
+        "T: Auto | [ ]: Bond Length | , .: Camera | ESC: Quit | R: Reset View | G: Render Mode";
 
     sf::Text controls(font, controlsString, 15);
     controls.setFillColor(sf::Color::White);
